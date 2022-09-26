@@ -4,7 +4,6 @@
 #include <QMainWindow>
 #include "mybutton.h"
 #include <QButtonGroup>
-#include <QDebug>
 #include <qrandom.h>
 #include <QDateTime>
 #include <QImage>
@@ -27,6 +26,7 @@ public:
     QList<MyButton*> *deleteBtnList;   // 用于存放消除区的元素
     QRandomGenerator generator;        // 随机数产生器
 
+    void initGame();
     //添加到下面消除窗口
     void addToDeleteWidget(MyButton *btn);
 
@@ -35,9 +35,6 @@ public:
 
     // 加载模版图案
     void load_element();
-
-    //生成关卡中涉及的图案集
-    void create_element_list(int level = 0); //level代表关卡数量
 
     // 将关卡元素随机分配到空间中
     void distribution_element(int level = 0); // level代表关卡数量
@@ -48,7 +45,7 @@ public:
     //判断是否可以点击
     bool isClickable(MyButton *btn);
 
-    QImage toGray( QImage image );
+    QImage toGray( QImage image);
     //判断按钮状态并设置图片
 
     void setPictureByStatus(MyButton *btn);
@@ -56,18 +53,12 @@ public:
 
     void setSideBtn(QPoint current_btn_point);
 
+
     ~MainWindow();
 public slots:
     //添加到消除栏槽函数
     void addToDeleteSlot(QAbstractButton *);
-    // 初始化界面的所有按钮能否被点击及颜色
-    void initClickedSlot();
-
     void on_beginGameBtn_clicked();
-
-
-signals:
-    void initClickedSig();
 
 private:
     Ui::MainWindow *ui;

@@ -8,12 +8,41 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QDir>
+#include <QDialogButtonBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    levelGroup=nullptr;
+    deleteBtnList=nullptr;
+    modelGroup=nullptr;
+    initGame();
+}
+
+void MainWindow::initGame()
+{
+    if(levelGroup!=nullptr)
+    {
+        int listSize=levelGroup->buttons().size();
+        for(int i=0;i<listSize;i++)
+        {
+            auto btn=levelGroup->buttons().at(0);
+            levelGroup->buttons().at(0)->setParent(NULL);
+            levelGroup->removeButton(btn);
+        }
+    }
+    if(deleteBtnList!=nullptr)
+    {
+        int listSize=deleteBtnList->size();
+        for(int i=0;i<listSize;i++)
+        {
+            deleteBtnList->at(0)->setParent(NULL);
+            deleteBtnList->removeAt(0);
+        }
+    }
+
     deleteBtnList=new QList<MyButton *>();
 
     //初始化随机数生成器，设置种子
@@ -26,10 +55,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 随机生成关卡中需要的元素
     levelGroup = new QButtonGroup();
-    this->create_element_list(1);
-    qDebug()<<levelGroup->buttons().size();
-
-    connect(this,&MainWindow::initClickedSig,this,&MainWindow::initClickedSlot);
 }
 
 MainWindow::~MainWindow()
@@ -73,10 +98,27 @@ void MainWindow::addToDeleteWidget(MyButton *btn)
     //gameover
     if(deleteBtnList->size()==7)
     {
-        QMessageBox *messageBox=new QMessageBox(this);
-        messageBox->setText("GAME OVER!");
-        messageBox->exec();
-        this->close();
+        QDialog  dialog;
+        dialog.setWindowTitle(tr("游戏失败"));
+        QDialogButtonBox *button = new QDialogButtonBox(&dialog);
+        button->addButton( "再试一次", QDialogButtonBox::YesRole);
+        button->addButton( "退出游戏", QDialogButtonBox::NoRole);
+        connect(button, SIGNAL(accepted()), &dialog, SLOT(accept()));
+        connect(button, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+        QVBoxLayout *layout = new QVBoxLayout;
+        layout->addWidget( button);
+        dialog.setLayout(layout);
+
+        QString suffix ;
+        if ( dialog.exec() == QDialog::Accepted)
+        {
+            initGame();
+        }
+        else
+        {
+            this->close();
+        }
     }
 }
 
@@ -97,7 +139,6 @@ void MainWindow::removeSame()
         if(sum==3)
         {
             //remove
-            qDebug()<<"找到三个，起始位置是："<<i;
             deleteBtnList->at(i)->setParent(NULL);
             deleteBtnList->removeAt(i);
             deleteBtnList->at(i)->setParent(NULL);
@@ -130,7 +171,6 @@ void MainWindow::addToDeleteSlot(QAbstractButton *aBtn)
     addToDeleteWidget((MyButton*)btn);
 
     //重新计算是否可以被点击及样式
-//    initClickedSlot();
     setSideBtn(current_btn_point);
 }
 
@@ -141,7 +181,6 @@ bool MainWindow::isClickable(MyButton *btn)
     MyButton * tmp_btn = (MyButton *) ui->goodsWidget->childAt(left_below);
     if (tmp_btn != btn)
     {
-        qDebug() <<tmp_btn << btn;
         return false;
     }
 
@@ -149,7 +188,6 @@ bool MainWindow::isClickable(MyButton *btn)
     tmp_btn = (MyButton *) ui->goodsWidget->childAt(left_top);
     if (tmp_btn != btn)
     {
-        qDebug() <<tmp_btn << btn;
         return false;
     }
 
@@ -166,17 +204,6 @@ bool MainWindow::isClickable(MyButton *btn)
         return false;
     }
     return true;
-}
-
-void MainWindow::initClickedSlot()
-{
-    for (int i = 0 ; i < levelGroup->buttons().size(); i ++)
-    {
-        qDebug()<<"根据是否可点击设置颜色"<<i;
-        //根据是否可点击设置颜色
-        MyButton *btn=(MyButton *)levelGroup->buttons().at(i);
-        setPictureByStatus(btn);
-    }
 }
 
 
@@ -199,31 +226,31 @@ void MainWindow::setPictureByStatus(MyButton *btn)
 void MainWindow::setSideBtn(QPoint current_btn_point)
 {
 
-     MyButton * tmp_btn = (MyButton *) ui->goodsWidget->childAt(current_btn_point);
-     if(tmp_btn)
-     {
-         setPictureByStatus(tmp_btn);
-     }
+    MyButton * tmp_btn = (MyButton *) ui->goodsWidget->childAt(current_btn_point);
+    if(tmp_btn)
+    {
+        setPictureByStatus(tmp_btn);
+    }
 
-     QPoint left_below(current_btn_point.rx(),current_btn_point.ry() + 28);
-     tmp_btn = (MyButton *) ui->goodsWidget->childAt(left_below);
-     if(tmp_btn)
-     {
-         setPictureByStatus(tmp_btn);
-     }
+    QPoint left_below(current_btn_point.rx(),current_btn_point.ry() + 28);
+    tmp_btn = (MyButton *) ui->goodsWidget->childAt(left_below);
+    if(tmp_btn)
+    {
+        setPictureByStatus(tmp_btn);
+    }
 
-     QPoint rigth_top(current_btn_point.rx() + 28,current_btn_point.ry());
-     tmp_btn = (MyButton *) ui->goodsWidget->childAt(rigth_top);
-     if(tmp_btn)
-     {
-         setPictureByStatus(tmp_btn);
-     }
-     QPoint rigth_below(current_btn_point.rx() + 28,current_btn_point.ry() + 28);
-     tmp_btn = (MyButton *) ui->goodsWidget->childAt(rigth_below);
-     if(tmp_btn)
-     {
-         setPictureByStatus(tmp_btn);
-     }
+    QPoint rigth_top(current_btn_point.rx() + 28,current_btn_point.ry());
+    tmp_btn = (MyButton *) ui->goodsWidget->childAt(rigth_top);
+    if(tmp_btn)
+    {
+        setPictureByStatus(tmp_btn);
+    }
+    QPoint rigth_below(current_btn_point.rx() + 28,current_btn_point.ry() + 28);
+    tmp_btn = (MyButton *) ui->goodsWidget->childAt(rigth_below);
+    if(tmp_btn)
+    {
+        setPictureByStatus(tmp_btn);
+    }
 }
 
 
@@ -257,7 +284,7 @@ QImage MainWindow::toGray( QImage image )
 
             for( int j = 0; j < width; j ++)
             {
-                 pDest[j] = qGray(pSrc[j]);
+                pDest[j] = qGray(pSrc[j]);
             }
         }
         break;
@@ -270,10 +297,15 @@ void MainWindow::on_beginGameBtn_clicked()
 {
     // 将关卡元素随机分配到空间中
     this->distribution_element(0);
-    emit initClickedSig();
+    //    emit initClickedSig()/*;*/
+    for (int i = 0 ; i < levelGroup->buttons().size(); i ++)
+    {
+        //根据是否可点击设置颜色
+        MyButton *btn=(MyButton *)levelGroup->buttons().at(i);
+        setPictureByStatus(btn);
+    }
 }
 
-//----------------------qinyoucai-----------------
 void MainWindow::load_element()
 {
     //加载模版图案
@@ -293,46 +325,15 @@ void MainWindow::load_element()
     }
 }
 
-void MainWindow::create_element_list(int level)
-{
-    //生成关卡中涉及的图案集
-    //level代表关卡数量
-    int max_element;
-    if( 0 == level ){
-         max_element = 195;
-    }
-    else
-    {
-        max_element = 156;
-    }
-
-    for(int i=0; i < max_element / 3; i ++)
-    {
-        int luck_index = generator.bounded(0,this->modelGroup->buttons().size());
-        MyButton *btn=((MyButton *) (this->modelGroup->buttons().at(luck_index)))->copyMyButton();
-        MyButton *btn2=((MyButton *) (this->modelGroup->buttons().at(luck_index)))->copyMyButton();
-        MyButton *btn3=((MyButton *) (this->modelGroup->buttons().at(luck_index)))->copyMyButton();
-
-        this->levelGroup->addButton(btn);
-        this->levelGroup->addButton(btn2);
-        this->levelGroup->addButton(btn3);
-
-    }
-    connect(levelGroup,SIGNAL(buttonClicked(QAbstractButton *)),this,SLOT(addToDeleteSlot(QAbstractButton *)));
-    qDebug() << this->levelGroup->buttons().size();
-}
-
 void MainWindow::distribution_element(int level)
 {
     //将关卡元素随机分配到空间中
     //并显示到parent上。
     if( 0 == level ){
 
-
         // 读取每个元素的位置
         QString path=QDir::currentPath();
-        qDebug()<<path;
-        QFile json_file(path+"/json/level_2.json");
+        QFile json_file(":/json/level_2.json");  //选择关卡配置文件。
         json_file.open(QIODevice::ReadOnly | QIODevice::Text);
         QString value = json_file.readAll();
         QJsonParseError error;
@@ -342,9 +343,24 @@ void MainWindow::distribution_element(int level)
         QJsonObject jsonObject=document.object();
         QJsonArray array=jsonObject["node"].toArray();
 
+        int max_element = array.size();
+        max_element = max_element  - max_element % 3;
+
+        for(int i=0; i < max_element / 3; i ++)
+        {
+            int luck_index = generator.bounded(0,this->modelGroup->buttons().size());
+            MyButton *btn=((MyButton *) (this->modelGroup->buttons().at(luck_index)))->copyMyButton();
+            MyButton *btn2=((MyButton *) (this->modelGroup->buttons().at(luck_index)))->copyMyButton();
+            MyButton *btn3=((MyButton *) (this->modelGroup->buttons().at(luck_index)))->copyMyButton();
+
+            this->levelGroup->addButton(btn);
+            this->levelGroup->addButton(btn2);
+            this->levelGroup->addButton(btn3);
+
+        }
+        connect(levelGroup,SIGNAL(buttonClicked(QAbstractButton *)),this,SLOT(addToDeleteSlot(QAbstractButton *)));
 
         // 打乱levelGroup的顺序
-        int max_element = array.size();
         QVector<int> *placement_num = new QVector<int>();     //顺序编号
         QVector<int> *placement_state = new QVector<int>();   //levelGroup中每个button放置的位置
         for(int i = 0 ; i < max_element ; i ++){

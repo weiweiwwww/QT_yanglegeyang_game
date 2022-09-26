@@ -30,5 +30,7 @@
         <file>icons/3gray.png</file>
         <file>icons/2gray.png</file>
         <file>icons/1gray.png</file>
+        <file>json/level_1.json</file>
+        <file>json/level_2.json</file>
     </qresource>
 </RCC>
