@@ -8,11 +8,11 @@
 
 程序启动界面
 
-<img src=".\image\main.PNG" alt="50%" style="zoom:80%;" />
+<img src="./image/main.png" alt="50%" style="zoom:80%;" />
 
 程序运行界面
 
-<img src=".\image\play.PNG" alt="50%" style="zoom:80%;" />
+<img src="./image/play.png" alt="50%" style="zoom:80%;" />
 
 
 
@@ -23,5 +23,3 @@
 - [ ] 添加得分系统和计时功能
 - [ ] 设计新的关卡
 
-注意事项
-json文件夹及其内部的json文件需要放到qt项目的运行目录下
